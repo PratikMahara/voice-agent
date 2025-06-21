@@ -22,6 +22,7 @@ console.log(FINAL_PROMPT);
       messages: [
         { role: "user", content: FINAL_PROMPT }
       ],
+      
     });
 
     console.log(completion.choices[0].message);
@@ -35,3 +36,4 @@ console.log(FINAL_PROMPT);
 };
 
 export default generateQuestions;
+// give a prompt to give a 10 dollar cash in the car then k 
