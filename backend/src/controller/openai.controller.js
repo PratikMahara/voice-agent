@@ -1,7 +1,7 @@
 // controllers/openaiController.js
 import OpenAI from "openai";
 import {QUESTIONS_PROMPT} from "../services/contant.js"; // adjust path as needed
-
+import {User} from "../models/user.model.js";
 const generateQuestions = async (req, res) => {
   try {
     const { jobposition, jobdescription, duration, type } = req.body;

@@ -1,6 +1,4 @@
-
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,22 +12,45 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
 
+    if (!name || !email || !password) {
+      setError("Please fill all the credentials");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await register(name, email, password);
-      toast({
-        title: "Welcome to AI Interviewer!",
-        description: "Your account has been created successfully.",
+      const response = await fetch("http://localhost:8000/api/user/register", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: name, // <-- Capital N!
+          email: email,
+          password: password,
+        }),
       });
-      navigate("/dashboard");
+
+      if (response.ok) {
+        toast({
+          title: "Welcome to AI Interviewer!",
+          description: "Your account has been created successfully.",
+        });
+        navigate("/dashboard");
+      } else {
+        const data = await response.json();
+        setError(data?.message || "Error while registering");
+      }
     } catch (error) {
+      setError("Network error. Please try again.");
       toast({
         title: "Registration failed",
         description: "Please try again with different credentials.",
@@ -57,6 +78,11 @@ const Register = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 text-red-600 text-sm text-center">
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -67,6 +93,7 @@ const Register = () => {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your full name"
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -78,6 +105,7 @@ const Register = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -89,6 +117,7 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Create a password"
                   required
+                  disabled={loading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
