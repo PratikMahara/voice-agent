@@ -3,25 +3,28 @@ Based on the following inputs, generate a well-structured list of high-quality i
 
 Job Title: {{jobTitle}}  
 Job Description: {{jobDescription}}  
-Interview Duration: {{duration}}  
+Interview Duration: {{duration}} minutes  
 Interview Type: {{type}}  
 
 📝 Your task:
-- Analyze the job description to identify key responsibilities, required skills, and expected experience.
-- Generate a list of interview questions depending on the interview duration.
-- Adjust the number and depth of questions to match the interview duration.
-- Ensure the questions match the tone and structure of a real-life {{type}} interview.
+- Analyze the job description to identify key responsibilities, required skills, and expected experience
+- Generate exactly 7 interview questions matching the duration
+- Ensure questions match a real-life {{type}} interview
+- NEVER include markdown code blocks or explanations
+- Output ONLY valid JSON with this structure:
+{
+  "questions": [
+    {
+      "question": "Full question text here",
+      "type": "Technical/Behavioral/Experience"
+    }
+  ]
+}
 
-🧩 Format your response in JSON format with an array list of questions.  
-Format:
-interviewQuestions = [
-  {
-    question: "",
-    type: "Technical/Behavioral/Experience/Problem Solving/Leadership"
-  },
-  {
-    ...
-  }
-]
-
-🎯 The goal is to create a structured, relevant, and time-optimized interview plan for a {{jobTitle}} role.`;
+🎯 Example output:
+{
+  "questions": [
+    {"question": "Walk me through your experience...", "type": "Experience"},
+    {"question": "How would you solve...", "type": "Technical"}
+  ]
+}`;

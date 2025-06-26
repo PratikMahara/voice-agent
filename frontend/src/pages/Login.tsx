@@ -1,19 +1,22 @@
-
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+const Login: React.FC = () => {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -22,16 +25,37 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const response = await fetch("http://localhost:8000/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.message || "Login failed");
+      }
+
+      const data = await response.json();
+      // In Login.tsx, after saving to localStorage:
+      console.log(data.data.accessToken);
+      
+      localStorage.setItem("user", JSON.stringify(data.data.user || data.data)); // Adjust as per your API response
+      localStorage.setItem("token", data.data.accessToken); // Adjust as per your API response
+
+      window.dispatchEvent(new Event("user-login"));
+      navigate("/dashboard");
+
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
       });
-      navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description:
+          error?.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
     } finally {
@@ -42,12 +66,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <MessageSquare className="h-8 w-8 text-blue-600 mr-2" />
-          <span className="text-2xl font-bold text-gray-900">AI Interviewer</span>
+          <span className="text-2xl font-bold text-gray-900">
+            AI Interviewer
+          </span>
         </div>
-
         <Card>
           <CardHeader>
             <CardTitle>Welcome back</CardTitle>
@@ -66,6 +90,8 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
+                  autoComplete="username"
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -77,6 +103,8 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
+                  autoComplete="current-password"
+                  disabled={loading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>

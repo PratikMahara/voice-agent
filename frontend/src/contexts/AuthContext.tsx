@@ -1,5 +1,5 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// AuthContext.tsx
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: string;
@@ -9,8 +9,6 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -25,76 +23,61 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Sync authentication state from localStorage
+  const syncAuth = () => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
     if (token && userData) {
       try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+        setUser(JSON.parse(userData));
       } catch (error) {
         console.error('Error parsing user data:', error);
+        setUser(null);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
+    } else {
+      setUser(null);
     }
     setLoading(false);
+  };
+
+  useEffect(() => {
+    // Initial sync on mount
+    syncAuth();
+
+    // Listen for custom login event and storage changes
+    window.addEventListener('user-login', syncAuth);
+    window.addEventListener('storage', syncAuth);
+
+    return () => {
+      window.removeEventListener('user-login', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, []);
-
-  const login = async (email: string, password: string) => {
-    // Simulate API call - replace with actual API integration
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user data - replace with actual API response
-    const mockUser = {
-      id: '1',
-      name: 'John Doe',
-      email: email,
-    };
-    
-    const mockToken = 'mock-jwt-token';
-    
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setUser(mockUser);
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    // Simulate API call - replace with actual API integration
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user creation - replace with actual API response
-    const mockUser = {
-      id: '1',
-      name: name,
-      email: email,
-    };
-    
-    const mockToken = 'mock-jwt-token';
-    
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setUser(mockUser);
-  };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    // Notify other tabs/windows of logout
+    window.dispatchEvent(new Event('user-login'));
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
-    login,
-    register,
     logout,
     loading,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

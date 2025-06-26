@@ -58,6 +58,7 @@ const Dashboard = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials:"include",
           body: JSON.stringify({
             jobposition: jobPosition,
             jobdescription: jobDescription,
@@ -150,7 +151,6 @@ const Dashboard = () => {
           </div>
         </div>
       </nav>
-
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Section */}
@@ -221,7 +221,6 @@ const Dashboard = () => {
                   </select>
                 </div>
               </div>
-
               <div className="space-y-3">
                 <Label
                   htmlFor="interviewType"

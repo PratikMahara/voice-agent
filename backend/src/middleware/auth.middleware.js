@@ -3,11 +3,10 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-export const verifyJWT = asyncHandler(async (req, res) => {
+export const verifyJWT = asyncHandler(async (req, res,next) => {
   try {
     const token =
-      req.cookies?.accessToken ||
-      req.header("Authorization")?.replace("Bearer", "");
+      req.cookies?.accessToken ;
     if (!token) {
       throw new ApiError(401, "Unauthorized request");
     }

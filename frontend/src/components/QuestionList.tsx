@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Clock, Briefcase, Users, FileText, Brain, ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+
 const QuestionList = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  // fallback in case user lands directly
+
   const {
     jobPosition = "",
     jobDescription = "",
@@ -16,7 +16,23 @@ const QuestionList = () => {
     openaiMessage = "",
   } = location.state || {};
 
-  // Optional: Redirect if no data (user lands here directly)
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/question/getuser", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const id = data.data._id;
+      navigate(`/interview/${id}`);
+    } catch (error) {
+      console.log("Error while getting user", error);
+    }
+  };
+
   if (!jobPosition || !jobDescription) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -45,35 +61,33 @@ const QuestionList = () => {
     );
   }
 
-  // Helper: Get OpenAI message content safely
+  // ✅ Clean JSON handling for openaiMessage
   let aiContent = "";
   let questionsArray = [];
 
   if (openaiMessage) {
-    if (typeof openaiMessage === "string") {
-      aiContent = openaiMessage;
-    } else if (typeof openaiMessage === "object" && openaiMessage.content) {
-      // Remove markdown code block and extract JSON array
-      const match = openaiMessage.content.match(/interviewQuestions\s*=\s*(\[[\s\S]*\])/);
-      if (match) {
-        try {
-          questionsArray = JSON.parse(match[1]);
-        } catch (e) {
-          aiContent = openaiMessage.content; // fallback to raw content
-        }
+    try {
+      const parsed = typeof openaiMessage === "string"
+        ? JSON.parse(openaiMessage)
+        : typeof openaiMessage.content === "string"
+          ? JSON.parse(openaiMessage.content)
+          : openaiMessage;
+
+      if (parsed.questions && Array.isArray(parsed.questions)) {
+        questionsArray = parsed.questions;
       } else {
-        aiContent = openaiMessage.content;
+        aiContent = JSON.stringify(parsed, null, 2);
       }
+    } catch (err) {
+      aiContent = typeof openaiMessage === "string" ? openaiMessage : openaiMessage.content || "";
     }
-    //there is a defective part in which the conversion of the aicontent in json form to quesitonsArray
-    console.log({ aiContent, questionsArray });
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header Section */}
+
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
             Interview Preparation
@@ -83,7 +97,7 @@ const QuestionList = () => {
           </p>
         </div>
 
-        {/* Interview Details Section */}
+        {/* Interview Details */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 animate-fade-in">
           <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-xl">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -102,7 +116,7 @@ const QuestionList = () => {
                 </div>
                 <p className="text-xl font-bold text-gray-900">{jobPosition}</p>
               </div>
-              
+
               <div className="group hover:bg-indigo-50 p-4 rounded-xl transition-all duration-300">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
@@ -112,7 +126,7 @@ const QuestionList = () => {
                 </div>
                 <p className="text-xl font-bold text-gray-900">{timeDuration} minutes</p>
               </div>
-              
+
               <div className="group hover:bg-purple-50 p-4 rounded-xl transition-all duration-300">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
@@ -126,7 +140,7 @@ const QuestionList = () => {
           </CardContent>
         </Card>
 
-        {/* Job Description Section */}
+        {/* Job Description */}
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 animate-fade-in">
           <CardHeader className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-t-xl">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -143,7 +157,7 @@ const QuestionList = () => {
           </CardContent>
         </Card>
 
-        {/* AI Generated Questions Section */}
+        {/* AI Questions */}
         {(questionsArray.length > 0 || aiContent) && (
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 animate-fade-in">
             <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-t-xl">
@@ -189,16 +203,15 @@ const QuestionList = () => {
         )}
 
         <Separator className="my-8" />
-        
-        {/* Action Button */}
+
+        {/* CTA */}
         <div className="text-center">
-          <Link to ="/interview">
-          <Button 
+          <Button
+            onClick={handleSubmit}
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-12 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             Start Interview
           </Button>
-          </Link>
         </div>
       </div>
     </div>
