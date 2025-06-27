@@ -1,13 +1,22 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Clock, Briefcase, Users, FileText, Brain, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  Briefcase,
+  Users,
+  FileText,
+  Brain,
+  ChevronRight,
+} from "lucide-react";
 
 const QuestionList = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
+ const { id } = useParams();
+const detailsId = id; 
   const {
     jobPosition = "",
     jobDescription = "",
@@ -18,20 +27,46 @@ const QuestionList = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/question/getuser", {
-        method: "GET",
+      if (!detailsId) {
+        console.error("detailsId is missing");
+        return;
+      }
+      
+      console.log("Using detailsId:", detailsId); // Should be a string
+      
+      const response = await fetch("http://localhost:8000/api/interview/start", {
+        method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ detailsId }) // Now sends { detailsId: "685e19a0c094a6bbdea176e8" }
       });
 
-      if (!response.ok) return;
-
+      if (!response.ok) throw new Error("Failed to start interview");
+      
       const data = await response.json();
-      const id = data.data._id;
-      navigate(`/interview/${id}`);
+      navigate(`/interview/${data.data._id}`);
     } catch (error) {
-      console.log("Error while getting user", error);
+      console.error("Error starting interview:", error);
     }
   };
+    // try {
+    //   const response = await fetch(
+    //     "http://localhost:8000/api/question/getuser",
+    //     {
+    //       method: "GET",
+    //       credentials: "include",
+    //     }
+    //   );
+
+    //   if (!response.ok) return;
+    //   console.log(detailsId);
+    //   const data = await response.json();
+    //   const id = data.data._id;
+    //   navigate(`/interview/${id}`);
+    // } catch (error) {
+    //   console.log("Error while getting user", error);
+    // }
+  
 
   if (!jobPosition || !jobDescription) {
     return (
@@ -49,7 +84,7 @@ const QuestionList = () => {
             <p className="mb-6 text-gray-600 text-lg">
               Please start an interview from the Dashboard.
             </p>
-            <Button 
+            <Button
               onClick={() => navigate("/dashboard")}
               className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
@@ -67,11 +102,12 @@ const QuestionList = () => {
 
   if (openaiMessage) {
     try {
-      const parsed = typeof openaiMessage === "string"
-        ? JSON.parse(openaiMessage)
-        : typeof openaiMessage.content === "string"
-          ? JSON.parse(openaiMessage.content)
-          : openaiMessage;
+      const parsed =
+        typeof openaiMessage === "string"
+          ? JSON.parse(openaiMessage)
+          : typeof openaiMessage.content === "string"
+            ? JSON.parse(openaiMessage.content)
+            : openaiMessage;
 
       if (parsed.questions && Array.isArray(parsed.questions)) {
         questionsArray = parsed.questions;
@@ -79,14 +115,16 @@ const QuestionList = () => {
         aiContent = JSON.stringify(parsed, null, 2);
       }
     } catch (err) {
-      aiContent = typeof openaiMessage === "string" ? openaiMessage : openaiMessage.content || "";
+      aiContent =
+        typeof openaiMessage === "string"
+          ? openaiMessage
+          : openaiMessage.content || "";
     }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
-
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
@@ -112,7 +150,9 @@ const QuestionList = () => {
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                     <Briefcase className="w-5 h-5 text-blue-600" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Job Position</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Job Position
+                  </p>
                 </div>
                 <p className="text-xl font-bold text-gray-900">{jobPosition}</p>
               </div>
@@ -122,9 +162,13 @@ const QuestionList = () => {
                   <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
                     <Clock className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Duration</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Duration
+                  </p>
                 </div>
-                <p className="text-xl font-bold text-gray-900">{timeDuration} minutes</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {timeDuration} minutes
+                </p>
               </div>
 
               <div className="group hover:bg-purple-50 p-4 rounded-xl transition-all duration-300">
@@ -132,9 +176,13 @@ const QuestionList = () => {
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                     <Users className="w-5 h-5 text-purple-600" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Interview Type</p>
+                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+                    Interview Type
+                  </p>
                 </div>
-                <p className="text-xl font-bold text-gray-900">{interviewType}</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {interviewType}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -170,8 +218,8 @@ const QuestionList = () => {
               {questionsArray.length > 0 ? (
                 <div className="space-y-4">
                   {questionsArray.map((q, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       className="group bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border border-blue-100 hover:border-purple-200 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02]"
                     >
                       <div className="flex items-start gap-4">
@@ -184,7 +232,9 @@ const QuestionList = () => {
                               {q.type}
                             </span>
                           </div>
-                          <p className="text-gray-800 font-medium leading-relaxed">{q.question}</p>
+                          <p className="text-gray-800 font-medium leading-relaxed">
+                            {q.question}
+                          </p>
                         </div>
                         <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors" />
                       </div>

@@ -73,7 +73,8 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      // console.log(data);
+      // console.log(data.detailsId);
+      const detailsId=data.detailsId;
 
       toast({
         title: "Questions generated!",
@@ -89,16 +90,19 @@ const Dashboard = () => {
           jobDescription,
           timeDuration,
           interviewType,
+          detailsId,
           openaiMessage,
+          
         })
       );
 
-      navigate("/question-list", {
+      navigate(`/question-list/${detailsId}`, {
         state: {
           jobPosition,
           jobDescription,
           timeDuration,
           interviewType,
+        
           openaiMessage: data.message,
         },
       });

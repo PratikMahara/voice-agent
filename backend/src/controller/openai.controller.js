@@ -44,7 +44,7 @@ const generateQuestions = async (req, res) => {
     
     try {
       questions = JSON.parse(responseContent);
-      console.log(questions);
+      // console.log(questions);
     } catch (e) {
       throw new ApiError(500, "Invalid JSON response from AI");
     }
@@ -65,6 +65,7 @@ const generateQuestions = async (req, res) => {
 
      res.status(200).json({
        message: completion.choices[0].message,
+       detailsId:detail._id
     });
   } catch (error) {
     console.error(error);

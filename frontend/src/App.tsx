@@ -37,8 +37,8 @@ const AppRoutes = () => {
       {/* Protected Routes */}
       <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/question-list" element={<QuestionList />} />
-        <Route path="/interview/:id" element={<Interview />} />
+        <Route path="/question-list/:id" element={<QuestionList />} />
+        <Route path="/interview/:sessionId" element={<Interview />} />
         <Route path="/feedback" element={<Feedback />} />
       </Route>
       

@@ -14,10 +14,12 @@ app.use(cookieParser())
 import googleauth from './router/auth.routes.js';
 import question from './router/question.routes.js';
 import user from './router/user.routes.js';
+import interview from "./router/interview.routes.js"
 // app.get('/api/question/getting', (req, res) => {
 //   res.send('Route is working!');
 // });
 app.use('/api/auth',googleauth)
 app.use('/api/question',question);
 app.use('/api/user',user);
+app.use('/api/interview',interview);
 export default app;
