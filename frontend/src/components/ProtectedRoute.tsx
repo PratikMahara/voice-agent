@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-
+ console.log("✅ USER IN PROTECTED ROUTE:", user); 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

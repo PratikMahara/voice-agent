@@ -18,13 +18,17 @@ const InterviewPage = () => {
   const [sessionTime, setSessionTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [name, setName] = useState("");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<any[]>([]);
+
   // Subtitles state
   const [agentTranscript, setAgentTranscript] = useState("");
   const [userTranscript, setUserTranscript] = useState("");
 
-  // CAMERA: Start user camera feed
+  // Start user camera feed
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
       .then((stream) => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -50,6 +54,32 @@ const InterviewPage = () => {
     return `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Save answers to database
+  const saveAnswers = async () => {
+    if (!sessionId ) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/interview/answer/${sessionId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ answers }),
+          credentials: "include",
+        }
+      );
+      if (!response.ok) {
+        console.log("Error while sending answers");
+      }
+      console.log("Answers saved successfully");
+      console.log(response);
+    } catch (err) {
+      console.error("Failed to save answers:", err);
+    }
   };
 
   useEffect(() => {
@@ -87,10 +117,17 @@ const InterviewPage = () => {
     fetchSession();
   }, [sessionId]);
 
+  // Save answers when call ends
+  useEffect(() => {
+    if (vapiStatus === "ended" || vapiStatus === "error") {
+      saveAnswers();
+    }
+  }, [vapiStatus]);
+
   useEffect(() => {
     if (!session || questions.length === 0) return;
 
-    const PUBLIC_KEY = "1a76f5a3-354c-4600-b16a-f2f8ad21bf7c"; // Replace with your Vapi public key
+    const PUBLIC_KEY = "1a76f5a3-354c-4600-b16a-f2f8ad21bf7c";
     if (!PUBLIC_KEY) {
       setLoadingError("VAPI public API key is missing");
       return;
@@ -104,18 +141,24 @@ const InterviewPage = () => {
       setIsCallActive(true);
       setVapiStatus("active");
     });
+
     vapi.on("call-end", () => {
+      console.log("Call has ended ✅"); // ← add this
       setIsCallActive(false);
       setVapiStatus("ended");
-      navigate(`/results/${sessionId}`);
+
+      saveAnswers().then(() => {
+        navigate(`/results/${sessionId}`);
+      });
     });
+
     vapi.on("error", (err: any) => {
       console.error("Vapi error:", err);
       setLoadingError(err.message || JSON.stringify(err));
       setVapiStatus("error");
     });
 
-    // Listen for finalized transcript messages and update subtitles
+    // Listen for transcripts and capture answers
     vapi.on("message", (msg: any) => {
       if (
         msg.type === "transcript" &&
@@ -124,8 +167,27 @@ const InterviewPage = () => {
       ) {
         if (msg.role === "assistant") {
           setAgentTranscript(msg.transcript);
+
+          // Detect new question from agent
+          const currentQuestion = questions[currentQuestionIndex]?.question;
+          if (currentQuestion && msg.transcript.includes(currentQuestion)) {
+            setCurrentQuestionIndex((prev) =>
+              Math.min(prev + 1, questions.length - 1)
+            );
+          }
         } else if (msg.role === "user") {
           setUserTranscript(msg.transcript);
+
+          // Save user answer with timestamp
+          if (currentQuestionIndex < questions.length) {
+            const newAnswer = {
+              questionIndex: currentQuestionIndex,
+              answer: msg.transcript,
+              timestamp: new Date(),
+            };
+
+            setAnswers((prev) => [...prev, newAnswer]);
+          }
         }
       }
     });
@@ -180,7 +242,6 @@ Wrap up after all questions:
 
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
-    // If Vapi supports mute, add mute logic here.
   };
 
   if (loadingError) {
@@ -206,7 +267,7 @@ Wrap up after all questions:
             <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="text-xl font-semibold text-slate-800">
-            AI INTERVIEWER{" "}
+            Microffer
           </span>
         </div>
         <h1 className="text-xl font-semibold text-slate-800">
@@ -319,6 +380,9 @@ Wrap up after all questions:
                     ? "Error in Interview"
                     : "Ready to start"}
             </p>
+            <p className="text-sm mt-2">
+              Current Question: {currentQuestionIndex + 1}/{questions.length}
+            </p>
           </div>
 
           {/* Interview Details */}
@@ -336,7 +400,6 @@ Wrap up after all questions:
                 minutes
               </p>
             </div>
-            {/* The questions list has been removed as requested */}
           </div>
 
           {/* Debug Info */}
@@ -344,6 +407,8 @@ Wrap up after all questions:
             <h3 className="font-semibold text-yellow-800">Debug Info</h3>
             <p>Session ID: {sessionId}</p>
             <p>Questions loaded: {questions.length}</p>
+            <p>Current Question Index: {currentQuestionIndex}</p>
+            <p>Answers captured: {answers.length}</p>
             <p>VAPI Status: {vapiStatus}</p>
             <p>Call Active: {isCallActive ? "Yes" : "No"}</p>
           </div>

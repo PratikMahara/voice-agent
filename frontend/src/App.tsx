@@ -39,7 +39,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/question-list/:id" element={<QuestionList />} />
         <Route path="/interview/:sessionId" element={<Interview />} />
-        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/results/:sessionId" element={<Feedback />} />
       </Route>
       
       <Route path="*" element={<NotFound />} />

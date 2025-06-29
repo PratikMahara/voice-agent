@@ -15,11 +15,18 @@ const interviewSessionSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  answers: [{
+ answers: [{
     questionIndex: Number,
     answer: String,
     timestamp: Date
-  }]
+  }],
+  feedback: {
+    type: mongoose.Schema.Types.Mixed,
+    default:"" // or String if it's always text
+  }
 }, { timestamps: true });
 
-export const InterviewSession = mongoose.model("InterviewSession", interviewSessionSchema);
+export const InterviewSession =
+  mongoose.models.InterviewSession ||
+  mongoose.model("InterviewSession", interviewSessionSchema);
+

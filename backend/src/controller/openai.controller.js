@@ -65,7 +65,8 @@ const generateQuestions = async (req, res) => {
 
      res.status(200).json({
        message: completion.choices[0].message,
-       detailsId:detail._id
+       detailsId:detail._id,
+   
     });
   } catch (error) {
     console.error(error);

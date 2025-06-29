@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const syncAuth = () => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
+    console.log([token,userData])
     if (token && userData) {
       try {
         setUser(JSON.parse(userData));
