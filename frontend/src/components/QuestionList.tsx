@@ -37,7 +37,7 @@ const detailsId = id;
       const response = await fetch("https://voice-agent-tbys.onrender.com/api/interview/start", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",  "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ detailsId })
       });
 
