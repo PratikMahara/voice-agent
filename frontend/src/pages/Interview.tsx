@@ -275,7 +275,7 @@ Wrap up after all questions:
             <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="text-xl font-semibold text-slate-800">
-            Microffer
+            PM Interviewer
           </span>
         </div>
         <h1 className="text-xl font-semibold text-slate-800">
