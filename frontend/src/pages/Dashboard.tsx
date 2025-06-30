@@ -40,7 +40,7 @@ const Dashboard = () => {
    useEffect(() => {
     const fetchUser = async () => {
       try {
-        const getuser = await fetch("http://localhost:8000/api/user/me", {
+        const getuser = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
           method: "GET",
           credentials: "include", // include cookies (e.g., JWT or session)
           headers: {
@@ -83,7 +83,7 @@ const Dashboard = () => {
     try {
       // Send data to backend
       const response = await fetch(
-        "http://localhost:8000/api/question/generate-questions",
+        "https://voice-agent-tbys.onrender.com/api/question/generate-questions",
         {
           method: "POST",
           headers: {
