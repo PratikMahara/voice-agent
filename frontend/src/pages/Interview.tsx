@@ -93,11 +93,11 @@ const InterviewPage = () => {
       try {
         const response = await fetch(
           `https://voice-agent-tbys.onrender.com/api/interview/get/${sessionId}`,
-           headers: {
+          { headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-          { credentials: "include" }
+           credentials: "include" }
         );
         const data = await response.json();
         if (!data?.data?.details) throw new Error("Missing session details");
