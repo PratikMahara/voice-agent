@@ -93,9 +93,12 @@ const getinfo=asyncHandler(async(req,res)=>{
         throw new ApiError("user is unauthorized");
     }
     console.log(user);
-    res
-    .status(200)
-    .json(user);
+   res.status(200).json({
+  statusCode: 200,
+  data: user,
+  message: "User details fetched successfully"
+});
+
 })
 export  {
     registerUser,
