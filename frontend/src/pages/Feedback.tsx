@@ -59,7 +59,7 @@ const Feedback: React.FC = () => {
         }
 
         const res = await fetch(
-          `http://localhost:8000/api/interview/result/${sessionId}`,
+          `https://voice-agent-tbys.onrender.com/api/interview/result/${sessionId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
