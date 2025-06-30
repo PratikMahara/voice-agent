@@ -58,6 +58,7 @@ const InterviewPage = () => {
 
   // Save answers to database
   const saveAnswers = async () => {
+    const token = localStorage.getItem("token");
     if (!sessionId ) return;
 
     try {
@@ -86,6 +87,7 @@ const InterviewPage = () => {
 
   useEffect(() => {
     const fetchSession = async () => {
+      const token = localStorage.getItem("token");
       if (!sessionId) {
         setLoadingError("Session ID is missing in the URL.");
         return;
