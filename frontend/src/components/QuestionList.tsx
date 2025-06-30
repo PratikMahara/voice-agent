@@ -34,11 +34,11 @@ const detailsId = id;
       
       console.log("Using detailsId:", detailsId); // Should be a string
       
-      const response = await fetch("http://localhost:8000/api/interview/start", {
+      const response = await fetch("https://voice-agent-tbys.onrender.com/api/interview/start", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ detailsId }) // Now sends { detailsId: "685e19a0c094a6bbdea176e8" }
+        body: JSON.stringify({ detailsId })
       });
 
       if (!response.ok) throw new Error("Failed to start interview");
@@ -51,7 +51,7 @@ const detailsId = id;
   };
     // try {
     //   const response = await fetch(
-    //     "http://localhost:8000/api/question/getuser",
+    //     "https://voice-agent-tbys.onrender.com/api/question/getuser",
     //     {
     //       method: "GET",
     //       credentials: "include",
