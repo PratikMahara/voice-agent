@@ -94,6 +94,7 @@ useEffect(() => {
     setLoading(true);
 
     try {
+        const token = localStorage.getItem("token");
       // Send data to backend
       const response = await fetch(
         "https://voice-agent-tbys.onrender.com/api/question/generate-questions",
