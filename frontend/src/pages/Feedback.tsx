@@ -29,6 +29,7 @@ const Feedback: React.FC = () => {
 
   useEffect(() => {
     const generateFeedback = async () => {
+      const token = localStorage.getItem("token");
       setLoading(true);
       
       // Start the 3-second loading animation
