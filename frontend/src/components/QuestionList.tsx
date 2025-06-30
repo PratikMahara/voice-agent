@@ -26,6 +26,7 @@ const detailsId = id;
   } = location.state || {};
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
     try {
       if (!detailsId) {
         console.error("detailsId is missing");
