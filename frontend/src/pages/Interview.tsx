@@ -67,6 +67,7 @@ const InterviewPage = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify({ answers }),
           credentials: "include",
@@ -92,6 +93,10 @@ const InterviewPage = () => {
       try {
         const response = await fetch(
           `https://voice-agent-tbys.onrender.com/api/interview/get/${sessionId}`,
+           headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
           { credentials: "include" }
         );
         const data = await response.json();
