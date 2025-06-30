@@ -37,27 +37,42 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [openaiMessage, setopenaiMessage] = useState("");
 
- useEffect(() => {
+useEffect(() => {
   const fetchUser = async () => {
     try {
-      const getuser = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" }
-      });
-
-      if (!getuser.ok) {
-        if (getuser.status === 401) {
-          navigate("/login");
-          return;
-        }
-        throw new Error(`HTTP error! status: ${getuser.status}`);
+      
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        navigate("/login");
+        return;
       }
 
-      const userData = await getuser.json();
-      setName(userData.data.fullName); // Use userData.data.fullName with new backend structure
+      
+      const res = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`  // Explicit token header
+        },
+        credentials: "include"  // Still include for cookies
+      });
+
+      
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setName(data.data.fullName);  // Updated to match ApiResponse structure
     } catch (error) {
-      console.log("Error getting user details:", error);
+      console.error("Error getting user details:", error);
     }
   };
 
