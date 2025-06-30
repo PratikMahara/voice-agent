@@ -77,6 +77,7 @@ const InterviewPage = () => {
       }
       console.log("Answers saved successfully");
       console.log(response);
+      console.log(response)
     } catch (err) {
       console.error("Failed to save answers:", err);
     }
@@ -127,7 +128,7 @@ const InterviewPage = () => {
   useEffect(() => {
     if (!session || questions.length === 0) return;
 
-    const PUBLIC_KEY = "1a76f5a3-354c-4600-b16a-f2f8ad21bf7c";
+    const PUBLIC_KEY =import.meta.env.VITE_VAPI_PUBLIC_KEY;
     if (!PUBLIC_KEY) {
       setLoadingError("VAPI public API key is missing");
       return;

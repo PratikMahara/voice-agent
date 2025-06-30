@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,42 @@ const Dashboard = () => {
   const [interviewType, setInterviewType] = useState("technical");
   const [loading, setLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-
+  const [name, setName] = useState("");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [openaiMessage, setopenaiMessage] = useState("");
+
+   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const getuser = await fetch("http://localhost:8000/api/user/me", {
+          method: "GET",
+          credentials: "include", // include cookies (e.g., JWT or session)
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!getuser.ok) {
+          if (getuser.status === 401) {
+            // Not authorized, redirect to login
+            navigate("/login");
+            return;
+          }
+          throw new Error(`HTTP error! status: ${getuser.status}`);
+        }
+
+        const userData = await getuser.json();
+        setName(userData.fullName); // Adjust based on your backend response
+      } catch (error) {
+        console.log("Error getting user details:", error);
+      }
+    };
+
+    fetchUser();
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jobPosition.trim() || !jobDescription.trim()) {
@@ -58,7 +89,7 @@ const Dashboard = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials:"include",
+          credentials: "include",
           body: JSON.stringify({
             jobposition: jobPosition,
             jobdescription: jobDescription,
@@ -74,7 +105,7 @@ const Dashboard = () => {
 
       const data = await response.json();
       // console.log(data.detailsId);
-      const detailsId=data.detailsId;
+      const detailsId = data.detailsId;
 
       toast({
         title: "Questions generated!",
@@ -92,7 +123,6 @@ const Dashboard = () => {
           interviewType,
           detailsId,
           openaiMessage,
-          
         })
       );
 
@@ -102,7 +132,7 @@ const Dashboard = () => {
           jobDescription,
           timeDuration,
           interviewType,
-        
+
           openaiMessage: data.message,
         },
       });
@@ -163,7 +193,7 @@ const Dashboard = () => {
             <Sparkles className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-            Welcome back, {user?.name}!
+            Welcome back, {name}!
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Ready to ace your next interview? Let's create personalized
@@ -280,7 +310,7 @@ const Dashboard = () => {
                     value={loadingProgress}
                     className="w-full h-3 mb-3"
                   />
-                  
+
                   <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-500">
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce mr-2"></div>

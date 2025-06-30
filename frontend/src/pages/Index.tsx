@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { MessageSquare, User, Mic } from "lucide-react";
+import { MessageSquare, User, Mic ,AlertCircle} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useGoogleLogin } from "@react-oauth/google";
 import {googleAuth} from '../api'
@@ -35,6 +35,16 @@ const Index = () => {
 
   return (
     <>
+    <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 border-b-2 border-orange-300 py-3 overflow-hidden shadow-lg">
+  <div className="whitespace-nowrap animate-marquee">
+    <span className="text-white font-bold text-base flex items-center gap-2 drop-shadow-sm">
+      <AlertCircle className="h-5 w-5 animate-pulse" />
+      🚨 Google login is currently unavailable. Please register and log in manually for the best experience! 🚨
+      <AlertCircle className="h-5 w-5 animate-pulse" />
+    </span>
+  </div>
+</div>
+
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">

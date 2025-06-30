@@ -85,7 +85,20 @@ const loginUser=asyncHandler(async(req,res)=>{
         )
     )
 })
+
+
+const getinfo=asyncHandler(async(req,res)=>{
+    const user=req.user;
+    if(!user){
+        throw new ApiError("user is unauthorized");
+    }
+    console.log(user);
+    res
+    .status(200)
+    .json(user);
+})
 export  {
     registerUser,
-    loginUser
+    loginUser,
+    getinfo
 }

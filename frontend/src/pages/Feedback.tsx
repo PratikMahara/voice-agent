@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { MessageSquare, ArrowLeft, User } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { LayoutDashboard } from "lucide-react";
 
 interface FeedbackData {
   overallScore: number;
@@ -19,211 +19,213 @@ interface FeedbackData {
   };
 }
 
-const Feedback = () => {
-  const sessionId = useParams();
+const Feedback: React.FC = () => {
+  const navigate = useNavigate();
+  const { sessionId } = useParams();
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    const User = localStorage.getItem("user");
-    const responses = localStorage.getItem("token");
-
-    if (!User || !responses) {
-      navigate("/dashboard");
-      return;
-    }
-
-    // Simulate generating feedback using Gemini API
     const generateFeedback = async () => {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      
+      // Start the 3-second loading animation
+      const loadingInterval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(loadingInterval);
+            return 100;
+          }
+          return prev + 2;
+        });
+      }, 60);
 
-      // Mock feedback - in real app, this would come from Gemini API
-      const mockFeedback: FeedbackData = {
-        overallScore: 78,
-        strengths: [
-          "Clear communication and articulation of ideas",
-          "Good understanding of technical concepts",
-          "Positive attitude and enthusiasm for the role",
-          "Relevant experience highlighted effectively",
-        ],
-        improvements: [
-          "Provide more specific examples with quantifiable results",
-          "Better structure for behavioral questions using STAR method",
-          "Show more knowledge about the company and industry",
-          "Ask more thoughtful questions about the role",
-        ],
-        detailedFeedback:
-          "Overall, you demonstrated strong technical knowledge and communication skills during the interview. Your responses showed genuine interest in the position and relevant experience. To improve, focus on providing more concrete examples with measurable outcomes and research the company more thoroughly before your next interview.",
-        skillBreakdown: {
-          technical: 85,
-          communication: 80,
-          problemSolving: 75,
-          cultural: 70,
-        },
-      };
+      // Wait for 3 seconds minimum
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
 
-      setFeedback(mockFeedback);
-      setLoading(false);
+        if (!sessionId) {
+          setError("Invalid session ID.");
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(
+          `http://localhost:8000/api/interview/result/${sessionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            navigate("/login");
+          } else {
+            throw new Error(`Failed to fetch feedback: ${res.status}`);
+          }
+          return;
+        }
+
+        const data = await res.json();
+
+        if (
+          typeof data.overallScore !== "number" ||
+          !data.skillBreakdown ||
+          !Array.isArray(data.strengths) ||
+          !Array.isArray(data.improvements) ||
+          typeof data.detailedFeedback !== "string"
+        ) {
+          throw new Error("Invalid feedback data structure");
+        }
+
+        setFeedback(data);
+      } catch (err) {
+        console.error("Error fetching feedback:", err);
+        setError("Could not fetch feedback. Please try again.");
+      } finally {
+        setLoading(false);
+        clearInterval(loadingInterval);
+      }
     };
 
     generateFeedback();
-  }, [navigate]);
-
-  const handleNewInterview = () => {
-    localStorage.removeItem("jobDescription");
-    localStorage.removeItem("interviewResponses");
-    navigate("/dashboard");
-  };
+  }, [navigate, sessionId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">
-            Generating your personalized feedback...
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center space-y-6 p-8">
+          <div className="animate-pulse">
+            <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 animate-bounce">
+              <img src="../../public/Ai.gif" width={150} height={150} className="rounded-full"/>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">Generating Your Feedback</h2>
+          <p className="text-gray-600 max-w-md">
+            Our AI is analyzing your interview performance and preparing detailed insights...
           </p>
+          <div className="w-80 space-y-2">
+            <Progress value={loadingProgress} className="h-2" />
+            <p className="text-sm text-gray-500">{Math.round(loadingProgress)}% Complete</p>
+          </div>
+          <div className="flex justify-center space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!feedback) return null;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600 text-center px-4">
+        {error}
+      </div>
+    );
+  }
+
+  if (!feedback) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/dashboard")}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <MessageSquare className="h-8 w-8 text-blue-600 mr-2" />
-              <span className="text-xl font-bold text-gray-900">
-                Interview Feedback
-              </span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-white shadow-sm border-b transition-all duration-300 hover:shadow-md">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">Interview Feedback</h1>
+          <Button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard
+          </Button>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Overall Score */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Interview Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white text-4xl font-bold mb-4">
-              {feedback.overallScore}%
-            </div>
-            <p className="text-lg text-gray-600">
-              {feedback.overallScore >= 80
-                ? "Excellent performance!"
-                : feedback.overallScore >= 70
-                  ? "Good performance with room for improvement"
-                  : feedback.overallScore >= 60
-                    ? "Fair performance, consider more practice"
-                    : "Needs improvement - keep practicing!"}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Skill Breakdown */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Skill Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(feedback.skillBreakdown).map(([skill, score]) => (
-              <div key={skill}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="capitalize font-medium">
-                    {skill.replace(/([A-Z])/g, " $1").trim()}
-                  </span>
-                  <span className="text-sm font-medium">{score}%</span>
-                </div>
-                <Progress value={score} className="h-2" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {/* Strengths */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-green-600">Strengths</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {feedback.strengths.map((strength, index) => (
-                  <li key={index} className="flex items-start">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-gray-700">{strength}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Areas for Improvement */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-orange-600">
-                Areas for Improvement
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {feedback.improvements.map((improvement, index) => (
-                  <li key={index} className="flex items-start">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <span className="text-gray-700">{improvement}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Detailed Feedback */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Detailed Feedback</CardTitle>
-          </CardHeader>
+      {/* Content */}
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <Card className="p-4 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-blue-500">
           <CardContent>
-            <p className="text-gray-700 leading-relaxed">
-              {feedback.detailedFeedback}
-            </p>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Overall Score</h2>
+            <Progress value={feedback.overallScore} className="mb-2 h-3" />
+            <p className="text-sm text-muted-foreground font-medium">{feedback.overallScore}%</p>
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={handleNewInterview} size="lg">
-            Start New Interview
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/dashboard")}
-          >
-            Back to Dashboard
-          </Button>
-        </div>
+        <Card className="p-4 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-green-500">
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Skill Breakdown</h2>
+            <div className="space-y-3">
+              {Object.entries(feedback.skillBreakdown).map(([skill, score]) => (
+                <div key={skill} className="transition-all duration-200 hover:bg-gray-50 p-2 rounded-lg">
+                  <p className="capitalize text-sm font-medium text-gray-700">{skill}</p>
+                  <Progress value={score} className="mb-1 h-2" />
+                  <p className="text-xs text-muted-foreground">{score}%</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="p-4 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-emerald-500">
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Strengths</h2>
+            {feedback.strengths.length > 0 ? (
+              <ul className="list-disc list-inside space-y-2">
+                {feedback.strengths.map((point, index) => (
+                  <li key={index} className="text-green-700 transition-all duration-200 hover:text-green-800 hover:bg-green-50 p-2 rounded-lg">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">No strengths provided.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="p-4 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-orange-500">
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Areas for Improvement</h2>
+            {feedback.improvements.length > 0 ? (
+              <ul className="list-disc list-inside space-y-2">
+                {feedback.improvements.map((point, index) => (
+                  <li key={index} className="text-red-700 transition-all duration-200 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">No improvement areas provided.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="p-4 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-l-4 border-l-purple-500">
+          <CardContent>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Detailed Feedback</h2>
+            <Separator className="my-2" />
+            <div className="transition-all duration-200 hover:bg-gray-50 p-3 rounded-lg">
+              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
+                {feedback.detailedFeedback}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
