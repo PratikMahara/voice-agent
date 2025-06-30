@@ -37,35 +37,33 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [openaiMessage, setopenaiMessage] = useState("");
 
-   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const getuser = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
-          method: "GET",
-          credentials: "include", // include cookies (e.g., JWT or session)
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+ useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const getuser = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
+      });
 
-        if (!getuser.ok) {
-          if (getuser.status === 401) {
-            // Not authorized, redirect to login
-            navigate("/login");
-            return;
-          }
-          throw new Error(`HTTP error! status: ${getuser.status}`);
+      if (!getuser.ok) {
+        if (getuser.status === 401) {
+          navigate("/login");
+          return;
         }
-
-        const userData = await getuser.json();
-        setName(userData.fullName); // Adjust based on your backend response
-      } catch (error) {
-        console.log("Error getting user details:", error);
+        throw new Error(`HTTP error! status: ${getuser.status}`);
       }
-    };
 
-    fetchUser();
-  }, [navigate]);
+      const userData = await getuser.json();
+      setName(userData.data.fullName); // Use userData.data.fullName with new backend structure
+    } catch (error) {
+      console.log("Error getting user details:", error);
+    }
+  };
+
+  fetchUser();
+}, [navigate]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
