@@ -30,7 +30,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <GoogleAuthWrapper />} />
+      <Route path="/" element={user ? <Navigate to="/index" replace /> : <GoogleAuthWrapper />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
       
