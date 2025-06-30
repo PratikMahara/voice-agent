@@ -151,6 +151,7 @@ useEffect(() => {
         },
       });
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "Failed to generate questions. Please try again.",
