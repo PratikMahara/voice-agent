@@ -62,7 +62,7 @@ const InterviewPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/interview/answer/${sessionId}`,
+        `https://voice-agent-tbys.onrender.com/api/interview/answer/${sessionId}`,
         {
           method: "PUT",
           headers: {
@@ -91,7 +91,7 @@ const InterviewPage = () => {
       }
       try {
         const response = await fetch(
-          `http://localhost:8000/api/interview/get/${sessionId}`,
+          `https://voice-agent-tbys.onrender.com/api/interview/get/${sessionId}`,
           { credentials: "include" }
         );
         const data = await response.json();
