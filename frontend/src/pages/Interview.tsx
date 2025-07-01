@@ -326,12 +326,13 @@ Wrap up after all questions:
                 </div>
                 {/* AGENT SUBTITLE */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full text-center pointer-events-none">
-                  {agentTranscript && (
-                    <div className="inline-block bg-white/80 px-4 py-2 rounded text-slate-800 text-lg font-medium shadow">
-                      {agentTranscript}
-                    </div>
-                  )}
-                </div>
+  {userTranscript && (
+    <div className="inline-block bg-white/80 px-4 py-2 rounded text-slate-800 text-lg font-medium shadow">
+      {userTranscript}
+    </div>
+  )}
+</div>
+
               </div>
             </div>
             {/* Candidate */}
@@ -344,6 +345,13 @@ Wrap up after all questions:
                     autoPlay
                     playsInline
                     muted
+                     style={{
+    width: "100%",
+    height: "auto",
+    objectFit: "cover",
+    borderRadius: "50%",
+    transform: "scaleX(-1)" 
+  }}
                     className="w-40 h-40 object-cover rounded-full mx-auto mb-4 bg-black shadow-lg"
                     style={{ background: "#111", borderRadius: "50%" }}
                   />
@@ -358,13 +366,19 @@ Wrap up after all questions:
                   </div>
                 </div>
                 {/* USER SUBTITLE */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full text-center pointer-events-none">
-                  {userTranscript && (
-                    <div className="inline-block bg-white/80 px-4 py-2 rounded text-slate-800 text-lg font-medium shadow">
-                      {userTranscript}
-                    </div>
-                  )}
-                </div>
+               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-full flex justify-center pointer-events-none px-2">
+  {userTranscript && (
+    <div
+      className="bg-white/80 px-3 py-2 rounded text-slate-800 text-base font-medium shadow
+                 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg w-auto
+                 whitespace-pre-line break-words text-ellipsis overflow-hidden"
+      style={{ wordBreak: "break-word" }}
+    >
+      {userTranscript}
+    </div>
+  )}
+</div>
+
               </div>
             </div>
           </div>
