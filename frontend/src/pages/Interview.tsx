@@ -26,18 +26,30 @@ const InterviewPage = () => {
   const [userTranscript, setUserTranscript] = useState("");
 
   // Start user camera feed
-  useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch((err) => {
-        console.error("Camera error:", err);
-      });
-  }, []);
+useEffect(() => {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    alert("Camera API not supported on this browser/device.");
+    return;
+  }
+  navigator.mediaDevices
+    .getUserMedia({
+      video: {
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    })
+    .then((stream) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    })
+    .catch((err) => {
+      alert("Camera error: " + err.name + " - " + err.message);
+      console.error("Camera error:", err);
+    });
+}, []);
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
