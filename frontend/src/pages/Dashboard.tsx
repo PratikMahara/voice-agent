@@ -186,7 +186,7 @@ useEffect(() => {
               <div className="flex items-center bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2 rounded-full border border-blue-200">
                 <User className="h-5 w-5 mr-2 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">
-                  {user?.name}
+                  {name}
                 </span>
               </div>
               <Button
