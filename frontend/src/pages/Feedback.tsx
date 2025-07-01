@@ -29,7 +29,6 @@ const Feedback: React.FC = () => {
 
   useEffect(() => {
     const generateFeedback = async () => {
-      const token = localStorage.getItem("token");
       setLoading(true);
       
       // Start the 3-second loading animation
@@ -59,6 +58,7 @@ const Feedback: React.FC = () => {
           return;
         }
 
+        // Updated URL to your production endpoint
         const res = await fetch(
           `https://voice-agent-tbys.onrender.com/api/interview/result/${sessionId}`,
           {
@@ -108,7 +108,7 @@ const Feedback: React.FC = () => {
         <div className="text-center space-y-6 p-8">
           <div className="animate-pulse">
             <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 animate-bounce">
-              <img src="/Ai.gif" width={150} height={150} className="rounded-full"/>
+              <img src="../../public/Ai.gif" width={150} height={150} className="rounded-full"/>
             </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Generating Your Feedback</h2>
