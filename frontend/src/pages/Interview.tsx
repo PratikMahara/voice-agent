@@ -278,178 +278,181 @@ Wrap up after all questions:
     return <div className="p-8 text-center">Loading interview session…</div>;
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm border-b border-slate-200">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="text-xl font-semibold text-slate-800">
-            PM Interviewer
-          </span>
+ return (
+  <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
+    {/* Header */}
+    <div className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+      <div className="flex items-center space-x-3">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-sm">M</span>
         </div>
-        <h1 className="text-xl font-semibold text-slate-800">
-          AI Interview Session
-        </h1>
-        <div className="flex items-center space-x-2 text-slate-600">
-          <Clock className="w-5 h-5" />
-          <span className="font-mono text-lg">{formatTime(sessionTime)}</span>
-        </div>
+        <span className="text-xl font-semibold text-slate-800">
+          PM Interviewer
+        </span>
       </div>
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Video Call Interface */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* AI Recruiter */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center relative">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <img
-                      src="/Ai.gif"
-                      alt="AI Recruiter"
-                      className="w-20 h-20 rounded-full object-cover"
-                    />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-800">
-                    AI Recruiter
-                  </h3>
-                </div>
-                <div className="absolute top-4 left-4">
-                  <div className="flex items-center space-x-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span>{isCallActive ? "Active" : "Idle"}</span>
-                  </div>
-                </div>
-                {/* AGENT SUBTITLE */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full text-center pointer-events-none">
-  {userTranscript && (
-    <div className="inline-block bg-white/80 px-4 py-2 rounded text-slate-800 text-lg font-medium shadow">
-      {userTranscript}
+      <h1 className="text-xl font-semibold text-slate-800">
+        AI Interview Session
+      </h1>
+      <div className="flex items-center space-x-2 text-slate-600">
+        <Clock className="w-5 h-5" />
+        <span className="font-mono text-lg">{formatTime(sessionTime)}</span>
+      </div>
     </div>
-  )}
-</div>
-
-              </div>
-            </div>
-            {/* Candidate */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center relative">
-                <div className="text-center w-full h-full flex flex-col items-center justify-center">
-                  {/* Live camera video */}
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                     style={{
-    width: "100%",
-    height: "auto",
-    objectFit: "cover",
-    borderRadius: "50%",
-    transform: "scaleX(-1)" 
-  }}
-                    className="w-40 h-40 object-cover rounded-full mx-auto mb-4 bg-black shadow-lg"
-                    style={{ background: "#111", borderRadius: "50%" }}
+    {/* Main Content */}
+    <div className="flex-1 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Video Call Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* AI Recruiter */}
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center relative">
+              <div className="text-center">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <img
+                    src="/Ai.gif"
+                    alt="AI Recruiter"
+                    className="w-20 h-20 rounded-full object-cover"
                   />
-                  <h3 className="text-lg font-semibold text-slate-800">
-                    {name}
-                  </h3>
                 </div>
-                <div className="absolute top-4 left-4">
-                  <div className="flex items-center space-x-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    <span>Connected</span>
+                <h3 className="text-lg font-semibold text-slate-800">
+                  AI Recruiter
+                </h3>
+              </div>
+              <div className="absolute top-4 left-4">
+                <div className="flex items-center space-x-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span>{isCallActive ? "Active" : "Idle"}</span>
+                </div>
+              </div>
+              {/* AGENT SUBTITLE */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-full flex justify-center pointer-events-none px-2">
+                {agentTranscript && (
+                  <div
+                    className="bg-white/80 px-3 py-2 rounded text-slate-800 text-base font-medium shadow
+                               max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg w-auto
+                               whitespace-pre-line break-words text-ellipsis overflow-hidden"
+                    style={{ wordBreak: "break-word" }}
+                  >
+                    {agentTranscript}
                   </div>
-                </div>
-                {/* USER SUBTITLE */}
-               <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-full flex justify-center pointer-events-none px-2">
-  {userTranscript && (
-    <div
-      className="bg-white/80 px-3 py-2 rounded text-slate-800 text-base font-medium shadow
-                 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg w-auto
-                 whitespace-pre-line break-words text-ellipsis overflow-hidden"
-      style={{ wordBreak: "break-word" }}
-    >
-      {userTranscript}
-    </div>
-  )}
-</div>
-
+                )}
               </div>
             </div>
           </div>
-
-          {/* Controls */}
-          <div className="flex justify-center space-x-6">
-            <Button
-              onClick={toggleMute}
-              className={`w-14 h-14 rounded-full ${
-                isMuted
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-slate-600 hover:bg-slate-700"
-              } transition-all duration-200 shadow-lg hover:shadow-xl`}
-            >
-              <Mic className="w-6 h-6 text-white" />
-            </Button>
-            <Button
-              onClick={handleEndCall}
-              className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Phone className="w-6 h-6 text-white" />
-            </Button>
-          </div>
-
-          {/* Status */}
-          <div className="text-center mt-8">
-            <p className="text-slate-500 text-lg">
-              {isCallActive
-                ? "Interview in Progress..."
-                : vapiStatus === "ended"
-                  ? "Interview Ended"
-                  : vapiStatus === "error"
-                    ? "Error in Interview"
-                    : "Ready to start"}
-            </p>
-            <p className="text-sm mt-2">
-              Current Question: {currentQuestionIndex + 1}/{questions.length}
-            </p>
-          </div>
-
-          {/* Interview Details */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-xl font-semibold">Job Details</h2>
-              <p>
-                <strong>Position:</strong> {session.details.jobposition}
-              </p>
-              <p>
-                <strong>Type:</strong> {session.details.type}
-              </p>
-              <p>
-                <strong>Duration:</strong> {session.details.timeduration}{" "}
-                minutes
-              </p>
+          {/* Candidate */}
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="aspect-video bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center relative">
+              <div className="text-center w-full h-full flex flex-col items-center justify-center">
+                {/* Live camera video */}
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    background: "#111",
+                    transform: "scaleX(-1)", // Mirror the camera for user
+                  }}
+                  className="w-40 h-40 object-cover rounded-full mx-auto mb-4 bg-black shadow-lg"
+                />
+                <h3 className="text-lg font-semibold text-slate-800">
+                  {name}
+                </h3>
+              </div>
+              <div className="absolute top-4 left-4">
+                <div className="flex items-center space-x-2 bg-green-500 text-white px-3 py-1 rounded-full text-sm">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span>Connected</span>
+                </div>
+              </div>
+              {/* USER SUBTITLE */}
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-full flex justify-center pointer-events-none px-2">
+                {userTranscript && (
+                  <div
+                    className="bg-white/80 px-3 py-2 rounded text-slate-800 text-base font-medium shadow
+                               max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg w-auto
+                               whitespace-pre-line break-words text-ellipsis overflow-hidden"
+                    style={{ wordBreak: "break-word" }}
+                  >
+                    {userTranscript}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Debug Info */}
-          <div className="mt-8 p-3 bg-yellow-50 rounded-lg">
-            <h3 className="font-semibold text-yellow-800">Debug Info</h3>
-            <p>Session ID: {sessionId}</p>
-            <p>Questions loaded: {questions.length}</p>
-            <p>Current Question Index: {currentQuestionIndex}</p>
-            <p>Answers captured: {answers.length}</p>
-            <p>VAPI Status: {vapiStatus}</p>
-            <p>Call Active: {isCallActive ? "Yes" : "No"}</p>
+        {/* Controls */}
+        <div className="flex justify-center space-x-6">
+          <Button
+            onClick={toggleMute}
+            className={`w-14 h-14 rounded-full ${
+              isMuted
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-slate-600 hover:bg-slate-700"
+            } transition-all duration-200 shadow-lg hover:shadow-xl`}
+          >
+            <Mic className="w-6 h-6 text-white" />
+          </Button>
+          <Button
+            onClick={handleEndCall}
+            className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <Phone className="w-6 h-6 text-white" />
+          </Button>
+        </div>
+
+        {/* Status */}
+        <div className="text-center mt-8">
+          <p className="text-slate-500 text-lg">
+            {isCallActive
+              ? "Interview in Progress..."
+              : vapiStatus === "ended"
+                ? "Interview Ended"
+                : vapiStatus === "error"
+                  ? "Error in Interview"
+                  : "Ready to start"}
+          </p>
+          <p className="text-sm mt-2">
+            Current Question: {currentQuestionIndex + 1}/{questions.length}
+          </p>
+        </div>
+
+        {/* Interview Details */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-semibold">Job Details</h2>
+            <p>
+              <strong>Position:</strong> {session.details.jobposition}
+            </p>
+            <p>
+              <strong>Type:</strong> {session.details.type}
+            </p>
+            <p>
+              <strong>Duration:</strong> {session.details.timeduration} minutes
+            </p>
           </div>
+        </div>
+
+        {/* Debug Info */}
+        <div className="mt-8 p-3 bg-yellow-50 rounded-lg">
+          <h3 className="font-semibold text-yellow-800">Debug Info</h3>
+          <p>Session ID: {sessionId}</p>
+          <p>Questions loaded: {questions.length}</p>
+          <p>Current Question Index: {currentQuestionIndex}</p>
+          <p>Answers captured: {answers.length}</p>
+          <p>VAPI Status: {vapiStatus}</p>
+          <p>Call Active: {isCallActive ? "Yes" : "No"}</p>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default InterviewPage;
