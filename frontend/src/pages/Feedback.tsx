@@ -108,7 +108,7 @@ const Feedback: React.FC = () => {
         <div className="text-center space-y-6 p-8">
           <div className="animate-pulse">
             <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 animate-bounce">
-              <img src="../../public/Ai.gif" width={150} height={150} className="rounded-full"/>
+              <img src="Ai.gif" width={150} height={150} className="rounded-full"/>
             </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-800">Generating Your Feedback</h2>
