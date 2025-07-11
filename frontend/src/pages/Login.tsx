@@ -39,7 +39,7 @@ const Login: React.FC = () => {
 
       const data = await response.json();
       // In Login.tsx, after saving to localStorage:
-      console.log(data.data.accessToken);
+     
       
       localStorage.setItem("user", JSON.stringify(data.data.user || data.data)); // Adjust as per your API response
       localStorage.setItem("token", data.data.accessToken); // Adjust as per your API response
