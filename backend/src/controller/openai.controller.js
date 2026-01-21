@@ -2,26 +2,24 @@ import OpenAI from "openai";
 import { QUESTIONS_PROMPT } from "../services/contant.js";
 import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js"; // Added missing import
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Details } from "../models/details.model.js";
 
 const generateQuestions = async (req, res) => {
   try {
     const user = req.user;
-    // console.log(user.email);
     if (!user) {
       return res.status(401).json(new ApiResponse(401, null, "Unauthorized"));
     }
 
     const { jobposition, jobdescription, duration, type } = req.body;
-    
-    // Validate required fields
+
     if (!jobposition || !jobdescription || !duration || !type) {
       throw new ApiError(400, "All fields are required");
     }
 
-    let FINAL_PROMPT = QUESTIONS_PROMPT
+    const FINAL_PROMPT = QUESTIONS_PROMPT
       .replace(/{{jobTitle}}/g, jobposition)
       .replace(/{{jobDescription}}/g, jobdescription)
       .replace(/{{duration}}/g, duration)
@@ -33,19 +31,29 @@ const generateQuestions = async (req, res) => {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
-      messages: [{ role: "user", content: FINAL_PROMPT }],
-      response_format: { type: "json_object" } // Enforce JSON output
+      model: "xiaomi/mimo-v2-flash:free",
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI that returns ONLY valid JSON. Do not add explanations."
+        },
+        {
+          role: "user",
+          content: FINAL_PROMPT
+        }
+      ],
+      reasoning: true, // 🔥 MiMo-specific hybrid reasoning toggle
+      temperature: 0.3,
+      response_format: { type: "json_object" }
     });
 
-    const responseContent = completion.choices[0].message.content;
-    // console.log(responseContent);
+    const rawContent = completion.choices[0].message.content;
+
     let questions;
-    
     try {
-      questions = JSON.parse(responseContent);
-      // console.log(questions);
-    } catch (e) {
+      questions = JSON.parse(rawContent);
+    } catch (err) {
+      console.error("AI RAW RESPONSE:", rawContent);
       throw new ApiError(500, "Invalid JSON response from AI");
     }
 
@@ -54,25 +62,27 @@ const generateQuestions = async (req, res) => {
       jobdescription,
       duration,
       type,
-      email:user.email,
-      question: questions, // Store parsed JSON
+      email: user.email,
+      question: questions,
       user: user._id,
     });
 
-    if (!detail) {
-      throw new ApiError(500, "Failed to create interview details");
-    }
+    res.status(200).json(
+      new ApiResponse(200, {
+        detailsId: detail._id,
+        questions
+      }, "Questions generated successfully")
+    );
 
-     res.status(200).json({
-       message: completion.choices[0].message,
-       detailsId:detail._id,
-   
-    });
   } catch (error) {
     console.error(error);
     const statusCode = error.statusCode || 500;
     res.status(statusCode).json(
-      new ApiResponse(statusCode, null, error.message || "Failed to generate questions")
+      new ApiResponse(
+        statusCode,
+        null,
+        error.message || "Failed to generate questions"
+      )
     );
   }
 };
