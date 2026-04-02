@@ -37,7 +37,7 @@ const generateQuestions = async (req, res) => {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek/deepseek-v3.2",
+      model: "arcee-ai/trinity-large-preview:free",
       messages: [
         {
           role: "user",
