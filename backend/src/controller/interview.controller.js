@@ -81,7 +81,7 @@ const saveAnswers = async (req, res) => {
     let feedback = "";
     try {
       const completion = await openai.chat.completions.create({
-        model: "arcee-ai/trinity-large-preview:free",
+        model: "liquid/lfm-2.5-1.2b-thinking:free",
         messages: [{ role: "user", content: FINAL_PROMPT }],
         response_format: { type: "json_object" },
       });
