@@ -222,7 +222,7 @@ useEffect(() => {
      voice: {
   provider: "azure",
   voiceId: "ja-JP-NanamiNeural",
-},,
+},
       transcriber: {
         provider: "deepgram",
         model: "nova-2",
