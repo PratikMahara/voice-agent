@@ -81,7 +81,7 @@ const saveAnswers = async (req, res) => {
     let feedback = "";
     try {
       const completion = await openai.chat.completions.create({
-        model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
+        model: "deepseek/deepseek-v3.2",
         messages: [{ role: "user", content: FINAL_PROMPT }],
         response_format: { type: "json_object" },
       });
