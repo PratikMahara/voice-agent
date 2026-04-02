@@ -37,7 +37,7 @@ const generateQuestions = async (req, res) => {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "arcee-ai/trinity-large-preview:free",
+      model: "liquid/lfm-2.5-1.2b-thinking:free",
       messages: [
         {
           role: "user",
