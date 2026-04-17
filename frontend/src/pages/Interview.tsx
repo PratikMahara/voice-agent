@@ -219,14 +219,14 @@ useEffect(() => {
 
     vapi.start({
       name: "AI Recruiter",
-     voice: {
-  provider: "azure",
-  voiceId: "ja-JP-NanamiNeural",
-},
+      voice: {
+        provider: "vapi",
+        voiceId: "Elliot",
+      },
       transcriber: {
         provider: "deepgram",
         model: "nova-2",
-        language: "ja",
+        language: "en-US",
       },
       model: {
         provider: "openai",
