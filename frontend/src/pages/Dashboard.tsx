@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import { API_BASE_URL } from "@/config/api";
 const Dashboard = () => {
   const [jobPosition, setJobPosition] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -49,7 +49,7 @@ useEffect(() => {
       }
 
       
-      const res = await fetch("https://voice-agent-tbys.onrender.com/api/user/me", {
+      const res = await fetch(`${API_BASE_URL}/api/user/me`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -97,7 +97,7 @@ useEffect(() => {
         const token = localStorage.getItem("token");
       // Send data to backend
       const response = await fetch(
-        "https://voice-agent-tbys.onrender.com/api/question/generate-questions",
+        `${API_BASE_URL}/api/question/generate-questions`,
         {
           method: "POST",
           headers: {

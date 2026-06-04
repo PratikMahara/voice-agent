@@ -11,7 +11,7 @@ import {
   Brain,
   ChevronRight,
 } from "lucide-react";
-
+import { API_BASE_URL } from "@/config/api";
 const QuestionList = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const detailsId = id;
       
       console.log("Using detailsId:", detailsId); // Should be a string
       
-      const response = await fetch("https://voice-agent-tbys.onrender.com/api/interview/start", {
+      const response = await fetch(`${API_BASE_URL}/api/interview/start`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json",  "Authorization": `Bearer ${token}` },

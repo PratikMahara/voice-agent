@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard } from "lucide-react";
-
+import { API_BASE_URL } from "@/config/api";
 interface FeedbackData {
   overallScore: number;
   strengths: string[];
@@ -60,7 +60,7 @@ const Feedback: React.FC = () => {
 
         // Updated URL to your production endpoint
         const res = await fetch(
-          `https://voice-agent-tbys.onrender.com/api/interview/result/${sessionId}`,
+          `${API_BASE_URL}/api/interview/result/${sessionId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

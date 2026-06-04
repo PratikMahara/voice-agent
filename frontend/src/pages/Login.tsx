@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { API_BASE_URL } from "@/config/api";
 import {
   Card,
   CardContent,
@@ -25,7 +26,7 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("https://voice-agent-tbys.onrender.com/api/user/login", {
+      const response = await fetch(`${API_BASE_URL}/api/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

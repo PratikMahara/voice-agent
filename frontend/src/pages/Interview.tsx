@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Vapi from "@vapi-ai/web";
 import { Mic, Phone, Clock } from "lucide-react";
-
+import { API_BASE_URL } from "@/config/api";
 const InterviewPage = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ useEffect(() => {
 
     try {
       const response = await fetch(
-        `https://voice-agent-tbys.onrender.com/api/interview/answer/${sessionId}`,
+        `${API_BASE_URL}/api/interview/answer/${sessionId}`,
         {
           method: "PUT",
           headers: {
@@ -106,7 +106,7 @@ useEffect(() => {
       }
       try {
         const response = await fetch(
-          `https://voice-agent-tbys.onrender.com/api/interview/get/${sessionId}`,
+          `${API_BASE_URL}/api/interview/get/${sessionId}`,
           { headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
