@@ -1,3 +1,4 @@
+// Pipeline for Interviewer CI - Builds and tests both frontend and backend, then pushes Docker images to Docker Hub. Triggers CD pipeline on success.
 @Library('Shared') _
 pipeline{
 
@@ -21,7 +22,7 @@ pipeline{
     environment {
         DOCKER_HUB_USER='pratikmahara'
         REPO_URL= 'https://github.com/PratikMahara/voice-agent.git'
-        SONAR_PROJECT=' interviewer'
+        SONAR_PROJECT='interviewer'
         IMAGE_BACKEND= "${DOCKER_HUB_USER}/interviewer-backend"
         IMAGE_FRONTEND= "${DOCKER_HUB_USER}/interviewer-frontend"
 
@@ -40,7 +41,7 @@ pipeline{
                     }
                     echo """
                     ╔══════════════════════════════════════╗
-                    ║  Wanderlust CI — ${params.ENVIRONMENT.toUpperCase()} Build
+                    ║  Interviewer CI — ${params.ENVIRONMENT.toUpperCase()} Build
                     ║  Frontend : ${params.FRONTEND_DOCKER_TAG}
                     ║  Backend  : ${params.BACKEND_DOCKER_TAG}
                     ╚══════════════════════════════════════╝
@@ -49,7 +50,7 @@ pipeline{
             }
         }
 
-        stage('Worksspace Cleanup') {
+        stage('Workspace Cleanup') {
             steps {
                 cleanWs()
             }
@@ -151,15 +152,97 @@ pipeline{
             }
         }
 
+        stage('Trivy: Image Scan') {
+            when {
+                expression { !params.SKIP_TESTS }
+            }
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    sh """
+                        trivy image --exit-code 0 --severity HIGH,CRITICAL \
+                          --format template --template "@contrib/html.tpl" \
+                          -o trivy-backend-report.html \
+                          ${env.IMAGE_BACKEND}:${params.BACKEND_DOCKER_TAG}
+
+                        trivy image --exit-code 0 --severity HIGH,CRITICAL \
+                          --format template --template "@contrib/html.tpl" \
+                          -o trivy-frontend-report.html \
+                          ${env.IMAGE_FRONTEND}:${params.FRONTEND_DOCKER_TAG}
+                    """
+                    publishHTML(target: [
+                        reportDir: '.', reportFiles: 'trivy-backend-report.html,trivy-frontend-report.html',
+                        reportName: 'Trivy Image Scan Report', keepAll: true
+                    ])
+                }
+            }
+        }
+        
+        stage('Docker: Push Image') {
+            steps {
+            
+                docker_push('interviewer-backend', params.BACKEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
+                docker_push('interviewer-frontend', params.FRONTEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
+           
+            }
+        }
 
 
-
+        stage('Docker: Cleanup Local Images') {
+            steps {
+                sh """
+                    docker rmi ${env.IMAGE_BACKEND}:${params.BACKEND_DOCKER_TAG}  || true
+                    docker rmi ${env.IMAGE_FRONTEND}:${params.FRONTEND_DOCKER_TAG} || true
+                """
+            }
+        }
 
 
 
 
         
 
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: '*.xml, *.html', followSymlinks: false
+
+            slackSend(
+                channel: '#deployments',
+                color: 'good',
+                message: """✅ *CI PASSED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
+                > Frontend: `${params.FRONTEND_DOCKER_TAG}` | Backend: `${params.BACKEND_DOCKER_TAG}`
+                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
+            )
+
+            build job: 'Interviewer-CD', wait: false, parameters: [
+                string(name: 'FRONTEND_DOCKER_TAG', value: params.FRONTEND_DOCKER_TAG),
+                string(name: 'BACKEND_DOCKER_TAG',  value: params.BACKEND_DOCKER_TAG),
+                string(name: 'ENVIRONMENT',          value: params.ENVIRONMENT)
+            ]
+        }
+
+        failure {
+            slackSend(
+                channel: '#deployments',
+                color: 'danger',
+                message: """❌ *CI FAILED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
+                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
+            )
+            emailext(
+                attachLog: true,
+                from: 'maharapratik5@gmail.com',
+                to: 'maharapratik5@gmail.com',
+                subject: "❌ CI FAILED — Interviewer #${env.BUILD_NUMBER}",
+                mimeType: 'text/html',
+                body: "<b>Job:</b> ${env.JOB_NAME}<br><b>Build:</b> ${env.BUILD_NUMBER}<br><b>URL:</b> ${env.BUILD_URL}"
+            )
+        }
+
+        always {
+            sh 'docker logout || true'
+            cleanWs()
+        }
     }
 
 }
