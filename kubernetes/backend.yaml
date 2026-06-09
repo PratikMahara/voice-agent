@@ -21,7 +21,9 @@ spec:
           env:
             - name: MONGO_URI
               value: "mongodb://mongodb-service:27017/Interviewer"
-
+          envFrom:
+            - secretRef: 
+                name: interviewer-backend-secret
 ---
 
 apiVersion: v1

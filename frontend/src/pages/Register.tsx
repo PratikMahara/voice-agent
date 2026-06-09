@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Link, useNavigate } from "react-router-dom";
 import { MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -28,7 +29,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch("https://voice-agent-tbys.onrender.com/api/user/register", {
+      const response = await fetch(`${API_BASE_URL}/api/user/register`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "include",

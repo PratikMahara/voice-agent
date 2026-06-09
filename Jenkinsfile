@@ -9,10 +9,9 @@ pipeline{
         buildDiscarder(logRotator(numToKeepStr: '10'))
         timeout(time: 60, unit: 'MINUTES')
         timestamps()
-        ansiColor('xterm')
     }
 
-     parameters {
+    parameters {
         string(name: 'FRONTEND_DOCKER_TAG', defaultValue: '', description: 'Frontend image tag')
         string(name: 'BACKEND_DOCKER_TAG',  defaultValue: '', description: 'Backend image tag')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
@@ -20,24 +19,21 @@ pipeline{
     }
 
     environment {
-        DOCKER_HUB_USER='pratikmahara'
-        REPO_URL= 'https://github.com/PratikMahara/voice-agent.git'
-        SONAR_PROJECT='interviewer'
-        IMAGE_BACKEND= "${DOCKER_HUB_USER}/interviewer-backend"
-        IMAGE_FRONTEND= "${DOCKER_HUB_USER}/interviewer-frontend"
-
-        SONAR_TOKEN= credentials('Sonar')
-        DOCKER_CREDS= credentials('docker')
-
+        DOCKER_HUB_USER = 'pratikmahara'
+        REPO_URL        = 'https://github.com/PratikMahara/voice-agent.git'
+        SONAR_PROJECT   = 'interviewer'
+        IMAGE_BACKEND   = "${DOCKER_HUB_USER}/interviewer-backend"
+        IMAGE_FRONTEND  = "${DOCKER_HUB_USER}/interviewer-frontend"
+        DOCKER_CREDS    = credentials('docker')
     }
 
-    stages{
+    stages {
 
-       stage('Validate Parameters') {
+        stage('Validate Parameters') {
             steps {
                 script {
                     if (!params.FRONTEND_DOCKER_TAG?.trim() || !params.BACKEND_DOCKER_TAG?.trim()) {
-                        error('❌ FRONTEND_DOCKER_TAG and BACKEND_DOCKER_TAG are required')
+                        error('FRONTEND_DOCKER_TAG and BACKEND_DOCKER_TAG are required')
                     }
                     echo """
                     ╔══════════════════════════════════════╗
@@ -57,28 +53,28 @@ pipeline{
         }
 
         stage('Git: Checkout') {
-            steps{
-                script{
-                    code_checkout(env.REPO_URL,'main')
+            steps {
+                script {
+                    code_checkout(env.REPO_URL, 'main')
                 }
             }
         }
-        stage('Security & QUality'){
-            when{
-                expression {!params.SKIP_TESTS}
+
+        stage('Security & Quality') {
+            when {
+                expression { !params.SKIP_TESTS }
             }
             parallel {
 
                 stage('Trivy: Filesystem Scan') {
                     steps {
-                        timeout(time:10, unit: 'MINUTES') {
+                        timeout(time: 10, unit: 'MINUTES') {
                             script {
                                 trivy_scan()
                             }
                         }
                     }
                 }
-
 
                 stage('OWASP: Dependency Check') {
                     steps {
@@ -96,33 +92,28 @@ pipeline{
                     steps {
                         timeout(time: 10, unit: 'MINUTES') {
                             withSonarQubeEnv('Sonar') {
-                                sh """
-                                    docker run --rm --network=host \
-                                      -e SONAR_TOKEN=${env.SONAR_TOKEN} \
-                                      -v \$(pwd):/usr/src \
-                                      sonarsource/sonar-scanner-cli \
-                                      -Dsonar.projectKey=${env.SONAR_PROJECT} \
-                                      -Dsonar.sources=. \
-                                      -Dsonar.host.url=http://localhost:9000
-                                """
+                                withCredentials([string(credentialsId: 'Sonar', variable: 'SONAR_TOKEN')]) {
+                                    sh '''
+                                        docker run --rm --network=host \
+                                          -e SONAR_TOKEN \
+                                          -v $(pwd):/usr/src \
+                                          sonarsource/sonar-scanner-cli \
+                                          -Dsonar.projectKey=''' + env.SONAR_PROJECT + ''' \
+                                          -Dsonar.sources=. \
+                                          -Dsonar.host.url=http://localhost:9000
+                                    '''
+                                }
                             }
                         }
                     }
                 }
 
-
-
-
-
-
-
-
             }
         }
 
-        stage('SonarQUbe:Quality Gate') {
-            when{
-                expression {!params.SKIP_TESTS}
+        stage('SonarQube: Quality Gate') {
+            when {
+                expression { !params.SKIP_TESTS }
             }
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -131,24 +122,31 @@ pipeline{
             }
         }
 
-
-        stage('Docker Build Images') {
+        stage('Docker: Login') {
             steps {
                 sh "echo ${env.DOCKER_CREDS_PSW} | docker login -u ${env.DOCKER_CREDS_USR} --password-stdin"
+            }
+        }
 
-                parallel (
-                    backend: {
+        stage('Docker: Build Images') {
+            parallel {
+
+                stage('Build Backend') {
+                    steps {
                         dir('backend') {
                             docker_build('interviewer-backend', params.BACKEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
                         }
-                    
-                    },
-                    frontend: {
+                    }
+                }
+
+                stage('Build Frontend') {
+                    steps {
                         dir('frontend') {
                             docker_build('interviewer-frontend', params.FRONTEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
                         }
                     }
-                )
+                }
+
             }
         }
 
@@ -176,16 +174,13 @@ pipeline{
                 }
             }
         }
-        
-        stage('Docker: Push Image') {
+
+        stage('Docker: Push Images') {
             steps {
-            
-                docker_push('interviewer-backend', params.BACKEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
+                docker_push('interviewer-backend',  params.BACKEND_DOCKER_TAG,  env.DOCKER_CREDS_USR)
                 docker_push('interviewer-frontend', params.FRONTEND_DOCKER_TAG, env.DOCKER_CREDS_USR)
-           
             }
         }
-
 
         stage('Docker: Cleanup Local Images') {
             steps {
@@ -196,24 +191,19 @@ pipeline{
             }
         }
 
-
-
-
-        
-
     }
 
     post {
         success {
-            archiveArtifacts artifacts: '*.xml, *.html', followSymlinks: false
+            archiveArtifacts artifacts: '*.xml,*.html', allowEmptyArchive: true, followSymlinks: false
 
-            slackSend(
-                channel: '#deployments',
-                color: 'good',
-                message: """✅ *CI PASSED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
-                > Frontend: `${params.FRONTEND_DOCKER_TAG}` | Backend: `${params.BACKEND_DOCKER_TAG}`
-                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
-            )
+            // slackSend(
+            //     channel: '#deployments',
+            //     color: 'good',
+            //     message: """✅ *CI PASSED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
+            //     > Frontend: `${params.FRONTEND_DOCKER_TAG}` | Backend: `${params.BACKEND_DOCKER_TAG}`
+            //     > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
+            // )
 
             build job: 'Interviewer-CD', wait: false, parameters: [
                 string(name: 'FRONTEND_DOCKER_TAG', value: params.FRONTEND_DOCKER_TAG),
@@ -223,27 +213,39 @@ pipeline{
         }
 
         failure {
-            slackSend(
-                channel: '#deployments',
-                color: 'danger',
-                message: """❌ *CI FAILED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
-                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
-            )
+            // slackSend(
+            //     channel: '#deployments',
+            //     color: 'danger',
+            //     message: """❌ *CI FAILED* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
+            //     > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
+            // )
+
             emailext(
                 attachLog: true,
                 from: 'maharapratik5@gmail.com',
                 to: 'maharapratik5@gmail.com',
-                subject: "❌ CI FAILED — Interviewer #${env.BUILD_NUMBER}",
+                subject: "CI FAILED — Interviewer #${env.BUILD_NUMBER}",
                 mimeType: 'text/html',
                 body: "<b>Job:</b> ${env.JOB_NAME}<br><b>Build:</b> ${env.BUILD_NUMBER}<br><b>URL:</b> ${env.BUILD_URL}"
             )
         }
 
         always {
+    script {
+        try {
             sh 'docker logout || true'
-            cleanWs()
+        } catch (Exception e) {
+            echo "docker logout skipped: ${e.message}"
         }
+    }
+    cleanWs(
+        notFailBuild: true,
+        patterns: [
+            [pattern: 'trivy-*.html',                type: 'EXCLUDE'],
+            [pattern: 'dependency-check-report.xml', type: 'EXCLUDE']
+        ]
+    )
+}
     }
 
 }
-

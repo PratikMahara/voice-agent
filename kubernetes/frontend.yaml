@@ -18,7 +18,12 @@ spec:
           image: pratikmahara/ai-interviewer-frontend:latest
           ports:
             - containerPort: 5173
-
+          env: 
+            - name: REACT_APP_API_URL
+              value: "http://backend-service:8000"
+          envFrom:
+            - secretRef:
+                name: interviewer-frontend-secret     
 ---
 apiVersion: v1
 kind: Service
