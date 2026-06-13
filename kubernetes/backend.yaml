@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: pratikmahara/ai-interviewer-backend:latest
+          image: pratikmahara/interviewer-backend:latest
           ports:
             - containerPort: 8000
           env:

@@ -28,6 +28,13 @@ spec:
     spec:
       securityContext:
         fsGroup: 999
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 999:999 /data/db"]
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
       containers:
         - name: mongodb
           image: mongo:latest
