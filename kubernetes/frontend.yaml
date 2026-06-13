@@ -15,12 +15,12 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: pratikmahara/ai-interviewer-frontend:latest
+          image: pratikmahara/interviewer-frontend:latest
           ports:
             - containerPort: 5173
           env: 
             - name: REACT_APP_API_URL
-              value: "http://backend-service:8000"
+              value: "http://localhost:30000"
           envFrom:
             - secretRef:
                 name: interviewer-frontend-secret     

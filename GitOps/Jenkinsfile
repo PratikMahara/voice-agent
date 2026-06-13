@@ -7,21 +7,32 @@ pipeline {
         disableConcurrentBuilds()
         timeout(time: 30, unit: 'MINUTES')
         timestamps()
-        ansiColor('xterm')
+        // ansiColor('xterm')
     }
 
     parameters {
-        string(name: 'FRONTEND_DOCKER_TAG', defaultValue: '', description: 'Frontend image tag from CI')
-        string(name: 'BACKEND_DOCKER_TAG',  defaultValue: '', description: 'Backend image tag from CI')
-        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Target environment')
+        string(
+            name: 'FRONTEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Frontend image tag from CI'
+        )
+        string(
+            name: 'BACKEND_DOCKER_TAG',
+            defaultValue: '',
+            description: 'Backend image tag from CI'
+        )
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'prod'],
+            description: 'Target environment'
+        )
     }
 
     environment {
         REPO_URL     = 'https://github.com/PratikMahara/voice-agent.git'
-        ARGOCD_APP   = "interviewer-${params.ENVIRONMENT}"
-        // Inject ArgoCD token from Jenkins credentials store
+        ARGOCD_APP   = "interviewer"
         ARGOCD_TOKEN = credentials('argocd-token')
-        ARGOCD_URL   = 'https://localhost:8000/'
+        ARGOCD_URL   = 'localhost:8000'
     }
 
     stages {
@@ -29,7 +40,8 @@ pipeline {
         stage('Validate Parameters') {
             steps {
                 script {
-                    if (!params.FRONTEND_DOCKER_TAG?.trim() || !params.BACKEND_DOCKER_TAG?.trim()) {
+                    if (!params.FRONTEND_DOCKER_TAG?.trim() ||
+                        !params.BACKEND_DOCKER_TAG?.trim()) {
                         error('❌ Docker tags must be provided by CI pipeline')
                     }
                 }
@@ -37,7 +49,9 @@ pipeline {
         }
 
         stage('Workspace Cleanup') {
-            steps { cleanWs() }
+            steps {
+                cleanWs()
+            }
         }
 
         stage('Git: Checkout') {
@@ -50,10 +64,10 @@ pipeline {
 
         stage('Verify: Images Exist on Registry') {
             steps {
-                // Fail fast — don't update manifests if the image was never pushed
                 sh """
                     docker manifest inspect pratikmahara/interviewer-backend:${params.BACKEND_DOCKER_TAG} \
                       || (echo '❌ Backend image not found on registry' && exit 1)
+
                     docker manifest inspect pratikmahara/interviewer-frontend:${params.FRONTEND_DOCKER_TAG} \
                       || (echo '❌ Frontend image not found on registry' && exit 1)
                 """
@@ -64,62 +78,62 @@ pipeline {
             steps {
                 dir('kubernetes') {
                     sh """
-                        sed -i -e "s|interviewer-backend:.*|interviewer-backend:${params.BACKEND_DOCKER_TAG}|g"  backend.yaml
+                        sed -i -e "s|interviewer-backend:.*|interviewer-backend:${params.BACKEND_DOCKER_TAG}|g" backend.yaml
                         sed -i -e "s|interviewer-frontend:.*|interviewer-frontend:${params.FRONTEND_DOCKER_TAG}|g" frontend.yaml
                     """
-                    // Validate the YAML isn't broken before committing
-                    sh 'kubectl apply --dry-run=client -f . || (echo "❌ Manifest validation failed" && exit 1)'
                 }
             }
         }
 
         stage('Git: Push Updated Manifests') {
             steps {
-                withCredentials([gitUsernamePassword(credentialsId: 'Github-cred', gitToolName: 'Default')]) {
+                withCredentials([
+                    gitUsernamePassword(
+                        credentialsId: 'Github-cred',
+                        gitToolName: 'Default'
+                    )
+                ]) {
                     sh """
-                        git config user.name  "jenkins-ci"
+                        git config user.name "jenkins-ci"
                         git config user.email "jenkins@ci.local"
+
                         git add kubernetes/backend.yaml kubernetes/frontend.yaml
-                        git diff --cached --quiet && echo "No changes to commit" || \
-                          git commit -m "chore(deploy): ${params.ENVIRONMENT} → backend:${params.BACKEND_DOCKER_TAG} frontend:${params.FRONTEND_DOCKER_TAG} [skip ci]"
+
+                        git diff --cached --quiet || \
+                        git commit -m "chore(deploy): ${params.ENVIRONMENT} → backend:${params.BACKEND_DOCKER_TAG} frontend:${params.FRONTEND_DOCKER_TAG} [skip ci]"
+
                         git push ${env.REPO_URL} main
                     """
                 }
             }
         }
 
-        // If you use ArgoCD — trigger sync and wait for healthy status
-        stage('ArgoCD: Sync & Wait') {
-            steps {
-                timeout(time: 10, unit: 'MINUTES') {
-                    sh """
-                        argocd app sync ${env.ARGOCD_APP} \
-                          --auth-token ${env.ARGOCD_TOKEN} \
-                          --server ${env.ARGOCD_URL} \
-                          --grpc-web
+stage('ArgoCD: Sync & Wait') {
+    steps {
+        timeout(time: 10, unit: 'MINUTES') {
+            withCredentials([string(credentialsId: 'argocd-token', variable: 'ARGOCD_AUTH_TOKEN')]) {
+                sh '''
+                    argocd app sync interviewer \
+                        --server localhost:8000 \
+                        --grpc-web \
+                        --insecure
 
-                        argocd app wait ${env.ARGOCD_APP} \
-                          --auth-token ${env.ARGOCD_TOKEN} \
-                          --server ${env.ARGOCD_URL} \
-                          --grpc-web \
-                          --health \
-                          --timeout 300
-                    """
-                }
+                    argocd app wait interviewer\
+                        --server localhost:8000 \
+                        --grpc-web \
+                        --insecure \
+                        --health \
+                        --timeout 300
+                '''
             }
         }
-
-   
+    }
+}
+    }
 
     post {
+
         success {
-            slackSend(
-                channel: '#deployments',
-                color: 'good',Interviewer
-                message: """🚀 *DEPLOYED* —  Interviewer[${params.ENVIRONMENT.toUpperCase()}]
-                > Frontend: `${params.FRONTEND_DOCKER_TAG}` | Backend: `${params.BACKEND_DOCKER_TAG}`
-                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
-            )
             emailext(
                 from: 'maharapratik5@gmail.com',
                 to: 'maharapratik5@gmail.com',
@@ -135,18 +149,30 @@ pipeline {
         }
 
         failure {
-            // Auto-rollback: revert the last git commit and re-sync
-            withCredentials([gitUsernamePassword(credentialsId: 'Github-cred', gitToolName: 'Default')]) {
-                sh """
-                    git revert HEAD --no-edit || true
-                    git push ${env.REPO_URL} main || true
-                """
+            script {
+                withCredentials([
+                    gitUsernamePassword(
+                        credentialsId: 'Github-cred',
+                        gitToolName: 'Default'
+                    )
+                ]) {
+                    sh """
+                        git revert HEAD --no-edit || true
+                        git push ${env.REPO_URL} main || true
+                    """
+                }
             }
-            slackSend(
-                channel: '#deployments',
-                color: 'danger',
-                message: """🔴 *DEPLOY FAILED + ROLLED BACK* — Interviewer [${params.ENVIRONMENT.toUpperCase()}]
-                > Build: <${env.BUILD_URL}|#${env.BUILD_NUMBER}>"""
+
+            emailext(
+                from: 'maharapratik5@gmail.com',
+                to: 'maharapratik5@gmail.com',
+                subject: "❌ Deploy FAILED — Interviewer ${params.ENVIRONMENT} #${env.BUILD_NUMBER}",
+                mimeType: 'text/html',
+                body: """
+                    <b>Deployment Failed</b><br>
+                    <b>Environment:</b> ${params.ENVIRONMENT}<br>
+                    <b>Build URL:</b> ${env.BUILD_URL}
+                """
             )
         }
 
