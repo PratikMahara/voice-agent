@@ -37,7 +37,7 @@ spec:
               mountPath: /data/db
       containers:
         - name: mongodb
-          image: mongo:latest
+          image: mongo:8.0
           ports:
             - containerPort: 27017
           volumeMounts:
