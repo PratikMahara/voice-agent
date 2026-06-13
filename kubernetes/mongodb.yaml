@@ -31,7 +31,7 @@ spec:
       initContainers:
         - name: fix-permissions
           image: busybox
-          command: ["sh", "-c", "chown -R 999:999 /data/db"]
+          command: ["sh", "-c", "chown -R 999:999 /data/db && rm -f /data/db/mongod.lock && rm -f /data/db/WiredTiger.lock"]
           volumeMounts:
             - name: mongodb-storage
               mountPath: /data/db
