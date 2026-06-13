@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: pratikmahara/interviewer-frontend:latest
+          image: pratikmahara/interviewer-frontend:v2.1.2
           ports:
             - containerPort: 5173
           env: 
